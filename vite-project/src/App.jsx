@@ -27,7 +27,7 @@ function App() {
   const [prices, setPrices] = useState({});
   const [sellQty, setSellQty] = useState({}); // ✅ NEW
 
-  const API = "http://localhost:5000/api";
+  const API = "https://your-backend.onrender.com/api";
   const token = localStorage.getItem("token");
   const [showChange, setShowChange] = useState(false);
 
