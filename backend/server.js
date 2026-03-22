@@ -1,4 +1,4 @@
-const Sales = require('./models/Sales');
+const Sales = require('./models/sales');
 const express = require("express"); 
 
 const mongoose = require("mongoose");
