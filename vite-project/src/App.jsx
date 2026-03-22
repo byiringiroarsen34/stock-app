@@ -27,7 +27,7 @@ function App() {
   const [prices, setPrices] = useState({});
   const [sellQty, setSellQty] = useState({}); // ✅ NEW
 
-  const API = "https://your-backend.onrender.com/api";
+  const API = "https://stock-app.up.railway.app/api";
   const token = localStorage.getItem("token");
   const [showChange, setShowChange] = useState(false);
 
