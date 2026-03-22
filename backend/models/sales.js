@@ -7,5 +7,4 @@ const SaleSchema = new mongoose.Schema({
   quantity: Number, // ✅ ADD THIS
   date: String
 });
-
 module.exports = mongoose.model('Sale', SaleSchema);

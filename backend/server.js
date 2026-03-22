@@ -1,24 +1,26 @@
-require("dotenv").config(); 
+require("dotenv").config();
 
-const Sale = require('./models/sales'); 
-
-const express = require("express"); 
-
+const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
+const Sale = require("./models/sales");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const SECRET = "mysecretkey";
+/* ================= ENV ================= */
+
+const SECRET = process.env.JWT_SECRET || "fallbacksecret";
+const MONGO_URI = process.env.MONGO_URI;
 
 /* ================= DATABASE ================= */
-mongoose.connect("mongodb+srv://byiringiroarsen34_db_user:kizito890.@cluster0.udqecpv.mongodb.net/stock-app?retryWrites=true&w=majority")
+
+mongoose.connect(MONGO_URI)
   .then(async () => {
     console.log("✅ MongoDB Connected");
     await createDefaultUsers();
@@ -39,13 +41,10 @@ const Product = mongoose.model("Product", {
   quantity: Number
 });
 
-
-
 /* ================= CREATE DEFAULT USERS ================= */
 
 const createDefaultUsers = async () => {
   try {
-    // ADMIN
     let admin = await User.findOne({ username: "admin" });
     if (!admin) {
       const hashed = await bcrypt.hash("1234", 10);
@@ -57,7 +56,6 @@ const createDefaultUsers = async () => {
       console.log("✅ Admin created (admin / 1234)");
     }
 
-    // WORKER
     let worker = await User.findOne({ username: "worker" });
     if (!worker) {
       const hashed = await bcrypt.hash("1234", 10);
@@ -73,7 +71,9 @@ const createDefaultUsers = async () => {
     console.log("❌ Error creating users:", err);
   }
 };
-// CHANGE USERNAME & PASSWORD
+
+/* ================= CHANGE CREDENTIALS ================= */
+
 app.post("/api/change-credentials", async (req, res) => {
   const { currentUsername, currentPassword, newUsername, newPassword } = req.body;
 
@@ -90,8 +90,8 @@ app.post("/api/change-credentials", async (req, res) => {
       return res.status(400).json({ message: "Wrong password" });
     }
 
-    // UPDATE
     if (newUsername) user.username = newUsername;
+
     if (newPassword) {
       const hashed = await bcrypt.hash(newPassword, 10);
       user.password = hashed;
@@ -105,26 +105,22 @@ app.post("/api/change-credentials", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-/* ================= AUTH ================= */
 
-// LOGIN
+/* ================= LOGIN ================= */
+
 app.post("/api/login", async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    console.log("LOGIN ATTEMPT:", username);
-
     const user = await User.findOne({ username });
 
     if (!user) {
-      console.log("❌ User not found");
       return res.status(400).json({ message: "User not found" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      console.log("❌ Wrong password");
       return res.status(400).json({ message: "Wrong password" });
     }
 
@@ -133,8 +129,6 @@ app.post("/api/login", async (req, res) => {
       SECRET,
       { expiresIn: "1d" }
     );
-
-    console.log("✅ Login success:", user.role);
 
     res.json({
       token,
@@ -147,7 +141,7 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-/* ================= MIDDLEWARE ================= */
+/* ================= AUTH ================= */
 
 const auth = (req, res, next) => {
   const token = req.headers.authorization;
@@ -163,9 +157,8 @@ const auth = (req, res, next) => {
   }
 };
 
-/* ================= API ================= */
+/* ================= PRODUCTS ================= */
 
-// ADD PRODUCT
 app.post("/api/products", auth, async (req, res) => {
   const { name, stockType, quantity } = req.body;
 
@@ -175,38 +168,34 @@ app.post("/api/products", auth, async (req, res) => {
   res.json(product);
 });
 
-// GET PRODUCTS
 app.get("/api/products", async (req, res) => {
   const products = await Product.find({ quantity: { $gt: 0 } });
   res.json(products);
 });
 
-// SELL PRODUCT
+/* ================= SELL ================= */
+
 app.post("/api/sell", async (req, res) => {
   const { id, price, quantity } = req.body;
 
   const product = await Product.findById(id);
 
-  // ❌ prevent invalid
   if (!product || product.quantity < quantity) {
     return res.status(400).json({ message: "Not enough stock" });
   }
 
-  // ✅ reduce stock
   product.quantity -= quantity;
 
-  // ✅ SAVE EXACT QUANTITY SOLD
   const sale = new Sale({
     productName: product.name,
     stockType: product.stockType,
     price: Number(price),
-    quantity: Number(quantity), // ⭐ VERY IMPORTANT
+    quantity: Number(quantity),
     date: new Date().toLocaleString()
   });
 
   await sale.save();
 
-  // ✅ remove if empty
   if (product.quantity === 0) {
     await Product.findByIdAndDelete(product._id);
   } else {
@@ -215,14 +204,14 @@ app.post("/api/sell", async (req, res) => {
 
   res.json({ message: "Sold successfully" });
 });
-// GET HISTORY
+
+/* ================= HISTORY ================= */
+
 app.get("/api/history", auth, async (req, res) => {
   const history = await Sale.find();
   res.json(history);
 });
 
-
-// CLEAR HISTORY
 app.delete("/api/history/:stockType", async (req, res) => {
   const { stockType } = req.params;
 
