@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const saleSchema = new mongoose.Schema({
+const SaleSchema = new mongoose.Schema({
   productName: String,
   stockType: Number,
   price: Number,
@@ -8,4 +8,4 @@ const saleSchema = new mongoose.Schema({
   date: String
 });
 
-module.exports = mongoose.model("Sale", saleSchema);
+module.exports = mongoose.model('Sale', SaleSchema);

@@ -1,4 +1,7 @@
-const Sales = require('./models/sales');
+require("dotenv").config(); 
+
+const Sale = require('./models/sales'); 
+
 const express = require("express"); 
 
 const mongoose = require("mongoose");
@@ -15,8 +18,7 @@ app.use(express.json());
 const SECRET = "mysecretkey";
 
 /* ================= DATABASE ================= */
-
-mongoose.connect("mongodb+srv://byiringiroarsen34_db_user:kizito890.@cluster0.udqecpv.mongodb.net/?appName=Cluster0")
+mongoose.connect("mongodb+srv://byiringiroarsen34_db_user:kizito890.@cluster0.udqecpv.mongodb.net/stock-app?retryWrites=true&w=majority")
   .then(async () => {
     console.log("✅ MongoDB Connected");
     await createDefaultUsers();
@@ -231,6 +233,8 @@ app.delete("/api/history/:stockType", async (req, res) => {
 
 /* ================= SERVER ================= */
 
-app.listen(5000, () => {
-  console.log("🚀 Server running on http://localhost:5000");
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
