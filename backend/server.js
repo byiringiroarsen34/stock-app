@@ -16,7 +16,7 @@ const SECRET = "mysecretkey";
 
 /* ================= DATABASE ================= */
 
-mongoose.connect("mongodb://127.0.0.1:27017/stock-app")
+mongoose.connect("mongodb://atlas-sql-69bfcdeda0132f9d6aa71e59-zri9r3.a.query.mongodb.net/sample_mflix?ssl=true&authSource=admin")
   .then(async () => {
     console.log("✅ MongoDB Connected");
     await createDefaultUsers();
