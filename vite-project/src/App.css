@@ -1,0 +1,410 @@
+body {
+  margin: 0;
+  font-family: "Segoe UI";
+ background-image: url(What-is-timber-wood-and-which-are-the-best-types-f.jpg);
+ background-size: cover;
+}
+
+/* LOGIN */
+/* ===== BACKGROUND ===== */
+.login-wrapper {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+}
+
+/* ===== CARD ===== */
+.login-card {
+  width: 360px;
+  background: transparent;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+/* ===== LOGO ===== */
+.logo {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 5px;
+}
+
+/* ===== SUBTITLE ===== */
+.subtitle {
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 25px;
+}
+
+/* ===== INPUT GROUP ===== */
+.input-group {
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+.input-group label {
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 5px;
+  display: block;
+}
+
+/* ===== INPUT BOX ===== */
+.input-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  padding: 10px;
+  border-radius: 10px;
+  background: #0e0f0f;
+  transition: 0.2s;
+}
+
+.input-box:hover {
+  border-color: #6366f1;
+}
+
+.input-box input {
+  border: none;
+  outline: none;
+  flex: 1;
+  background: transparent;
+  padding-left: 8px;
+}
+
+.input-box span {
+  cursor: pointer;
+}
+
+/* ===== LOGIN BUTTON ===== */
+.login-btn {
+  width: 100%;
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.login-btn:hover {
+  background: #4f46e5;
+}
+
+/* ===== ERROR ===== */
+.error-box {
+  background: #fee2e2;
+  color: #b91c1c;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+/* ===== SPINNER ===== */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid white;
+  border-top: 3px solid transparent;
+  border-radius: 50%;
+  margin: auto;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* ================= TABLE DESIGN ================= */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  font-size: 14px;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+/* HEADER */
+thead {
+  background: #1e293b;
+  color: white;
+}
+
+th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+/* BODY */
+td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* ROW HOVER */
+tbody tr {
+  transition: 0.2s;
+}
+
+tbody tr:hover {
+  background: #f1f5f9;
+}
+
+/* LAST ROW REMOVE BORDER */
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ================= INPUT INSIDE TABLE ================= */
+
+table input {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 80px;
+}
+
+/* ================= BUTTON INSIDE TABLE ================= */
+
+table button {
+  padding: 6px 10px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s;
+}
+
+table button:hover {
+  background: #1d4ed8;
+}
+
+/* DISABLED BUTTON */
+table button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* ================= CARD IMPROVEMENT ================= */
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+/* ================= TITLE ================= */
+
+.card h2 {
+  margin-bottom: 10px;
+  color: #1e293b;
+}
+
+/* ================= SIDEBAR BUTTON IMPROVE ================= */
+
+.sidebar button {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.sidebar button:hover {
+  background: #475569;
+}
+.sidebar button:nth-child(3) {
+  background: #10b981;
+}
+.danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  transition: all 0.2s ease;
+}
+
+.danger:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+.danger:active {
+  transform: scale(0.96);
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.form-grid input,
+.form-grid select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.add-btn {
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.history-controls {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.select-stock {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+h1 {
+  color: black;
+}   
+/* DASHBOARD */
+.layout {
+  display: flex; 
+}
+
+.sidebar {
+  width: 200px;
+  background: #1e293b;
+  color: white;
+  height: 100vh;
+  padding: 20px;
+}
+
+.sidebar button {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  background: #334155;
+  color: white;
+  border: none;
+}
+
+.logout {
+  background: red !important;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+  background: #f1f5f9;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+}
+/* ================= CHANGE CREDENTIALS CARD ================= */
+
+.change-card {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #ffffff, #f4f6f9);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.4s ease;
+}
+
+.change-card h3 {
+  margin-bottom: 15px;
+  color: #111;
+  font-weight: 600;
+}
+
+/* Inputs spacing */
+.change-card .input-group {
+  margin-bottom: 15px;
+}
+
+/* Save button */
+.save-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #4facfe, #00c6ff);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 198, 255, 0.4);
+}
+
+/* Smooth animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* Change Page */
+.change-page {
+  max-width: 400px;
+}
+
+/* Back Button */
+.back-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #058d32;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.back-btn:hover {
+  background: #1225c7;
+}
+.change-btn { 
+   margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #058d32;
+  cursor: pointer;
+  transition: 0.3s;
+
+}
+.change-btn:hover {
+  background: #00c6ff;
+}
