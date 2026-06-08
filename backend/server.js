@@ -13,7 +13,7 @@ const Sale = require("./models/sales");
 
 const app = express();
 
-// CORS Configuration - Allow specific origins
+// CORS Configuration - Allow Vercel frontend and local development
 const allowedOrigins = [
   "https://stock-app-two-dusky.vercel.app",
   "http://localhost:3000",
