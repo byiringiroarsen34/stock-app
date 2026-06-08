@@ -6,13 +6,16 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
+// Import Models
+const User = require("./models/user");
+const Product = require("./models/products");
 const Sale = require("./models/sales");
 
 const app = express();
 
 app.use(cors({
   origin: "*",
-  methods: ["GET", "POST", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.use(express.json());
@@ -30,20 +33,6 @@ mongoose.connect(MONGO_URI)
     await createDefaultUsers();
   })
   .catch(err => console.log("❌ DB ERROR:", err));
-
-/* ================= MODELS ================= */
-
-const User = mongoose.model("User", {
-  username: String,
-  password: String,
-  role: String
-});
-
-const Product = mongoose.model("Product", {
-  name: String,
-  stockType: Number,
-  quantity: Number
-});
 
 /* ================= CREATE DEFAULT USERS ================= */
 
@@ -76,41 +65,30 @@ const createDefaultUsers = async () => {
   }
 };
 
-/* ================= CHANGE CREDENTIALS ================= */
+/* ================= MIDDLEWARE ================= */
 
-app.post("/api/change-credentials", async (req, res) => {
-  const { currentUsername, currentPassword, newUsername, newPassword } = req.body;
+const auth = (req, res, next) => {
+  const token = req.headers.authorization;
+
+  if (!token) return res.status(401).json({ message: "No token" });
 
   try {
-    const user = await User.findOne({ username: currentUsername });
-
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
-    }
-
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json({ message: "Wrong password" });
-    }
-
-    if (newUsername) user.username = newUsername;
-
-    if (newPassword) {
-      const hashed = await bcrypt.hash(newPassword, 10);
-      user.password = hashed;
-    }
-
-    await user.save();
-
-    res.json({ message: "Credentials updated successfully" });
-
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    const decoded = jwt.verify(token, SECRET);
+    req.user = decoded;
+    next();
+  } catch {
+    res.status(401).json({ message: "Invalid token" });
   }
-});
+};
 
-/* ================= LOGIN ================= */
+const adminOnly = (req, res, next) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+  next();
+};
+
+/* ================= AUTH ENDPOINTS ================= */
 
 app.post("/api/login", async (req, res) => {
   try {
@@ -145,83 +123,127 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-/* ================= AUTH ================= */
-
-const auth = (req, res, next) => {
-  const token = req.headers.authorization;
-
-  if (!token) return res.status(401).json({ message: "No token" });
+app.post("/api/change-credentials", auth, async (req, res) => {
+  const { currentUsername, currentPassword, newUsername, newPassword } = req.body;
 
   try {
-    const decoded = jwt.verify(token, SECRET);
-    req.user = decoded;
-    next();
-  } catch {
-    res.status(401).json({ message: "Invalid token" });
+    const user = await User.findOne({ username: currentUsername });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Wrong password" });
+    }
+
+    if (newUsername) user.username = newUsername;
+
+    if (newPassword) {
+      const hashed = await bcrypt.hash(newPassword, 10);
+      user.password = hashed;
+    }
+
+    await user.save();
+
+    res.json({ message: "Credentials updated successfully" });
+
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
-};
+});
 
-/* ================= PRODUCTS ================= */
+/* ================= PRODUCTS ENDPOINTS ================= */
 
-app.post("/api/products", auth, async (req, res) => {
-  const { name, stockType, quantity } = req.body;
+app.post("/api/products", auth, adminOnly, async (req, res) => {
+  try {
+    const { name, stockType, quantity } = req.body;
 
-  const product = new Product({ name, stockType, quantity });
-  await product.save();
+    if (!name || !stockType || !quantity) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
 
-  res.json(product);
+    const product = new Product({ name, stockType, quantity });
+    await product.save();
+
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ message: "Error creating product" });
+  }
 });
 
 app.get("/api/products", async (req, res) => {
-  const products = await Product.find({ quantity: { $gt: 0 } });
-  res.json(products);
+  try {
+    const products = await Product.find({ quantity: { $gt: 0 } });
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching products" });
+  }
 });
 
-/* ================= SELL ================= */
+/* ================= SALES ENDPOINTS ================= */
 
-app.post("/api/sell", async (req, res) => {
-  const { id, price, quantity } = req.body;
+app.post("/api/sell", auth, async (req, res) => {
+  try {
+    const { id, price, quantity } = req.body;
 
-  const product = await Product.findById(id);
+    if (!id || !price || !quantity) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
 
-  if (!product || product.quantity < quantity) {
-    return res.status(400).json({ message: "Not enough stock" });
+    const product = await Product.findById(id);
+
+    if (!product || product.quantity < quantity) {
+      return res.status(400).json({ message: "Not enough stock" });
+    }
+
+    product.quantity -= quantity;
+
+    const sale = new Sale({
+      productName: product.name,
+      stockType: product.stockType,
+      price: Number(price),
+      quantity: Number(quantity),
+      date: new Date().toLocaleString()
+    });
+
+    await sale.save();
+
+    if (product.quantity === 0) {
+      await Product.findByIdAndDelete(product._id);
+    } else {
+      await product.save();
+    }
+
+    res.json({ message: "Sold successfully", sale });
+  } catch (err) {
+    res.status(500).json({ message: "Error processing sale" });
   }
-
-  product.quantity -= quantity;
-
-  const sale = new Sale({
-    productName: product.name,
-    stockType: product.stockType,
-    price: Number(price),
-    quantity: Number(quantity),
-    date: new Date().toLocaleString()
-  });
-
-  await sale.save();
-
-  if (product.quantity === 0) {
-    await Product.findByIdAndDelete(product._id);
-  } else {
-    await product.save();
-  }
-
-  res.json({ message: "Sold successfully" });
 });
 
-/* ================= HISTORY ================= */
+/* ================= HISTORY ENDPOINTS ================= */
 
 app.get("/api/history", auth, async (req, res) => {
-  const history = await Sale.find();
-  res.json(history);
+  try {
+    const history = await Sale.find();
+    res.json(history);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching history" });
+  }
 });
 
-app.delete("/api/history/:stockType", async (req, res) => {
-  const { stockType } = req.params;
+app.delete("/api/history/:stockType", auth, adminOnly, async (req, res) => {
+  try {
+    const { stockType } = req.params;
 
-  await Sale.deleteMany({ stockType: Number(stockType) });
+    await Sale.deleteMany({ stockType: Number(stockType) });
 
-  res.json({ message: `Stock ${stockType} history cleared` });
+    res.json({ message: `Stock ${stockType} history cleared` });
+  } catch (err) {
+    res.status(500).json({ message: "Error clearing history" });
+  }
 });
 
 /* ================= SERVER ================= */
