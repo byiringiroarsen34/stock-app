@@ -142,6 +142,11 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+// Helpful GET route for developers visiting the endpoint in a browser
+app.get("/api/login", (req, res) => {
+  res.status(200).json({ message: "This endpoint accepts POST with JSON {username, password}. Use POST to authenticate." });
+});
+
 app.post("/api/change-credentials", auth, async (req, res) => {
   const { currentUsername, currentPassword, newUsername, newPassword } = req.body;
 
