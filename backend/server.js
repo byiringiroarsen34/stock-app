@@ -148,26 +148,18 @@ if (MONGO_URI) {
     }
   });
 } else {
-  // Mount file-based api handlers (fallback for environments without MongoDB)
-  const fileApiDir = path.join(__dirname, "..", "api");
-  try {
-    const fileLogin = require(path.join(fileApiDir, "login.js"));
-    const fileChange = require(path.join(fileApiDir, "change-credentials.js"));
-    const fileProducts = require(path.join(fileApiDir, "products.js"));
-    const fileSell = require(path.join(fileApiDir, "sell.js"));
-    const fileHistory = require(path.join(fileApiDir, "history.js"));
+  // Mount backend-local fallback handlers when no MongoDB is configured.
+  const fileStore = require('./file-store');
 
-    app.post("/api/login", fileLogin);
-    app.post("/api/change-credentials", fileChange);
-    app.post("/api/products", fileProducts);
-    app.get("/api/products", fileProducts);
-    app.post("/api/sell", fileSell);
-    app.get("/api/history", fileHistory);
-    app.delete("/api/history/:stockType", fileHistory);
-    console.log("✅ File-store API handlers mounted (no DB required)");
-  } catch (err) {
-    console.error("❌ Could not mount file-based API handlers:", err.message);
-  }
+  app.post('/api/login', fileStore.login);
+  app.post('/api/change-credentials', fileStore.changeCredentials);
+  app.post('/api/products', fileStore.products);
+  app.get('/api/products', fileStore.products);
+  app.post('/api/sell', fileStore.sell);
+  app.get('/api/history', fileStore.history);
+  app.delete('/api/history/:stockType', fileStore.clearHistory);
+
+  console.log('✅ Local file-store fallback mounted (no DB required)');
 }
 
 // Helpful GET route for developers visiting the endpoint in a browser
@@ -175,39 +167,40 @@ app.get("/api/login", (req, res) => {
   res.status(200).json({ message: "This endpoint accepts POST with JSON {username, password}. Use POST to authenticate." });
 });
 
-app.post("/api/change-credentials", auth, async (req, res) => {
-  const { currentUsername, currentPassword, newUsername, newPassword } = req.body;
+if (MONGO_URI) {
+  app.post("/api/change-credentials", auth, async (req, res) => {
+    const { currentUsername, currentPassword, newUsername, newPassword } = req.body;
 
-  try {
-    const user = await User.findOne({ username: currentUsername });
+    try {
+      const user = await User.findOne({ username: currentUsername });
 
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      if (!user) {
+        return res.status(400).json({ message: "User not found" });
+      }
+
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+      if (!isMatch) {
+        return res.status(400).json({ message: "Wrong password" });
+      }
+
+      if (newUsername) user.username = newUsername;
+
+      if (newPassword) {
+        const hashed = await bcrypt.hash(newPassword, 10);
+        user.password = hashed;
+      }
+
+      await user.save();
+
+      res.json({ message: "Credentials updated successfully" });
+
+    } catch (err) {
+      res.status(500).json({ message: "Server error" });
     }
+  });
 
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json({ message: "Wrong password" });
-    }
-
-    if (newUsername) user.username = newUsername;
-
-    if (newPassword) {
-      const hashed = await bcrypt.hash(newPassword, 10);
-      user.password = hashed;
-    }
-
-    await user.save();
-
-    res.json({ message: "Credentials updated successfully" });
-
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-/* ================= PRODUCTS ENDPOINTS ================= */
+  /* ================= PRODUCTS ENDPOINTS ================= */
 
 app.post("/api/products", auth, adminOnly, async (req, res) => {
   try {
@@ -297,6 +290,7 @@ app.delete("/api/history/:stockType", auth, adminOnly, async (req, res) => {
     res.status(500).json({ message: "Error clearing history" });
   }
 });
+}
 
 /* ================= SERVER ================= */
 

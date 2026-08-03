@@ -29,6 +29,7 @@ module.exports = async function handler(req, res) {
     const token = createToken(user);
     return sendJson(res, 200, { token, role: user.role });
   } catch (error) {
+    console.error('api/login error:', error);
     return sendJson(res, 500, { message: 'Server error', error: error.message });
   }
 };

@@ -1,7 +1,20 @@
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 
-const storePath = path.join(process.cwd(), 'api', '.store.json');
+const rootStorePath = path.join(__dirname, '..', '.store.json');
+const tmpStorePath = path.join(os.tmpdir(), 'stock-app-api', '.store.json');
+
+function isWritableDirectory(directory) {
+  try {
+    fs.accessSync(directory, fs.constants.W_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const storePath = process.env.STORE_PATH || (isWritableDirectory(path.dirname(rootStorePath)) ? rootStorePath : tmpStorePath);
 
 const defaultStore = {
   users: [
@@ -12,7 +25,16 @@ const defaultStore = {
   sales: []
 };
 
+function ensureStoreDirectory(directory) {
+  if (!fs.existsSync(directory)) {
+    fs.mkdirSync(directory, { recursive: true });
+  }
+}
+
 function ensureStore() {
+  const directory = path.dirname(storePath);
+  ensureStoreDirectory(directory);
+
   if (!fs.existsSync(storePath)) {
     fs.writeFileSync(storePath, JSON.stringify(defaultStore, null, 2));
   }

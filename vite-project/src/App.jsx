@@ -69,8 +69,9 @@ const [page, setPage] = useState("login"); // login | change
       localStorage.setItem("role", res.data.role);
       setRole(res.data.role);
       setPage("login");
-    } catch {
-      setError("Invalid credentials");
+    } catch (err) {
+      const serverMessage = err.response?.data?.message;
+      setError(serverMessage || "Invalid credentials");
     }
 
     setLoading(false);
