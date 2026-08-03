@@ -27,7 +27,7 @@ function App() {
   const [prices, setPrices] = useState({});
   const [sellQty, setSellQty] = useState({}); // ✅ NEW
 
-  const API = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
+  const API = "/api";
   const token = localStorage.getItem("token");
   const [showChange, setShowChange] = useState(false);
 
