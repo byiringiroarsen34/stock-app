@@ -12,6 +12,7 @@ const Product = require("./models/products");
 const Sale = require("./models/sales");
 
 const app = express();
+const path = require("path");
 
 // CORS Configuration - Allow Vercel frontend and local development
 const allowedOrigins = [
@@ -46,12 +47,16 @@ const MONGO_URI = process.env.MONGO_URI;
 
 /* ================= DATABASE ================= */
 
-mongoose.connect(MONGO_URI)
-  .then(async () => {
-    console.log("✅ MongoDB Connected");
-    await createDefaultUsers();
-  })
-  .catch(err => console.log("❌ DB ERROR:", err));
+if (MONGO_URI) {
+  mongoose.connect(MONGO_URI)
+    .then(async () => {
+      console.log("✅ MongoDB Connected");
+      await createDefaultUsers();
+    })
+    .catch(err => console.log("❌ DB ERROR:", err));
+} else {
+  console.warn("⚠️  No MONGO_URI provided — starting in file-store fallback mode.");
+}
 
 /* ================= CREATE DEFAULT USERS ================= */
 
@@ -109,38 +114,61 @@ const adminOnly = (req, res, next) => {
 
 /* ================= AUTH ENDPOINTS ================= */
 
-app.post("/api/login", async (req, res) => {
+if (MONGO_URI) {
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+
+      const user = await User.findOne({ username });
+
+      if (!user) {
+        return res.status(400).json({ message: "User not found" });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+
+      if (!isMatch) {
+        return res.status(400).json({ message: "Wrong password" });
+      }
+
+      const token = jwt.sign(
+        { id: user._id, role: user.role },
+        SECRET,
+        { expiresIn: "1d" }
+      );
+
+      res.json({
+        token,
+        role: user.role
+      });
+
+    } catch (err) {
+      console.log("❌ LOGIN ERROR:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+} else {
+  // Mount file-based api handlers (fallback for environments without MongoDB)
+  const fileApiDir = path.join(__dirname, "..", "api");
   try {
-    const { username, password } = req.body;
+    const fileLogin = require(path.join(fileApiDir, "login.js"));
+    const fileChange = require(path.join(fileApiDir, "change-credentials.js"));
+    const fileProducts = require(path.join(fileApiDir, "products.js"));
+    const fileSell = require(path.join(fileApiDir, "sell.js"));
+    const fileHistory = require(path.join(fileApiDir, "history.js"));
 
-    const user = await User.findOne({ username });
-
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json({ message: "Wrong password" });
-    }
-
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      SECRET,
-      { expiresIn: "1d" }
-    );
-
-    res.json({
-      token,
-      role: user.role
-    });
-
+    app.post("/api/login", fileLogin);
+    app.post("/api/change-credentials", fileChange);
+    app.post("/api/products", fileProducts);
+    app.get("/api/products", fileProducts);
+    app.post("/api/sell", fileSell);
+    app.get("/api/history", fileHistory);
+    app.delete("/api/history/:stockType", fileHistory);
+    console.log("✅ File-store API handlers mounted (no DB required)");
   } catch (err) {
-    console.log("❌ LOGIN ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ Could not mount file-based API handlers:", err.message);
   }
-});
+}
 
 // Helpful GET route for developers visiting the endpoint in a browser
 app.get("/api/login", (req, res) => {
