@@ -199,10 +199,12 @@ const [page, setPage] = useState("login"); // login | change
           {error && <div className="error-box">{error}</div>}
 
           <div className="input-group">
-            <label>Username</label>
+            <label htmlFor="login-username">Username</label>
             <div className="input-box">
               <span>👤</span>
               <input
+                id="login-username"
+                name="login-username"
                 type="text"
                 placeholder="Enter username"
                 onChange={(e) => setUsername(e.target.value)}
@@ -211,10 +213,12 @@ const [page, setPage] = useState("login"); // login | change
           </div>
 
           <div className="input-group">
-            <label>Password</label>
+            <label htmlFor="login-password">Password</label>
             <div className="input-box">
               <span>🔒</span>
               <input
+                id="login-password"
+                name="login-password"
                 type={showPass ? "text" : "password"}
                 placeholder="Enter password"
                 onChange={(e) => setPassword(e.target.value)}
@@ -248,34 +252,54 @@ const [page, setPage] = useState("login"); // login | change
         <h1 className="logo">🔐 Change Credentials</h1>
 
         <div className="input-group">
-          <label>Current Username</label>
+          <label htmlFor="current-username">Current Username</label>
           <div className="input-box">
             <span>👤</span>
-            <input onChange={(e) => setCurrentUsername(e.target.value)} />
+            <input
+              id="current-username"
+              name="current-username"
+              type="text"
+              onChange={(e) => setCurrentUsername(e.target.value)}
+            />
           </div>
         </div>
 
         <div className="input-group">
-          <label>Current Password</label>
+          <label htmlFor="current-password">Current Password</label>
           <div className="input-box">
             <span>🔒</span>
-            <input type="password" onChange={(e) => setCurrentPassword(e.target.value)} />
+            <input
+              id="current-password"
+              name="current-password"
+              type="password"
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
           </div>
         </div>
 
         <div className="input-group">
-          <label>New Username</label>
+          <label htmlFor="new-username">New Username</label>
           <div className="input-box">
             <span>✨</span>
-            <input onChange={(e) => setNewUsername(e.target.value)} />
+            <input
+              id="new-username"
+              name="new-username"
+              type="text"
+              onChange={(e) => setNewUsername(e.target.value)}
+            />
           </div>
         </div>
 
         <div className="input-group">
-          <label>New Password</label>
+          <label htmlFor="new-password">New Password</label>
           <div className="input-box">
             <span>🔑</span>
-            <input type="password" onChange={(e) => setNewPassword(e.target.value)} />
+            <input
+              id="new-password"
+              name="new-password"
+              type="password"
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
           </div>
         </div>
 
@@ -317,12 +341,18 @@ const [page, setPage] = useState("login"); // login | change
 
                 <div className="form-grid">
                   <input
+                    id="product-name"
+                    name="product-name"
+                    aria-label="Product Name"
                     placeholder="Product Name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
 
                   <select
+                    id="product-stock-type"
+                    name="product-stock-type"
+                    aria-label="Stock Type"
                     value={stockType}
                     onChange={(e) => setStockType(Number(e.target.value))}
                   >
@@ -331,6 +361,9 @@ const [page, setPage] = useState("login"); // login | change
                   </select>
 
                   <input
+                    id="product-quantity"
+                    name="product-quantity"
+                    aria-label="Quantity"
                     type="number"
                     placeholder="Quantity"
                     value={quantity}
@@ -488,6 +521,9 @@ const [page, setPage] = useState("login"); // login | change
                       {/* ✅ INPUT QUANTITY */}
                       <td>
                         <input
+                          id={`sell-qty-${p._id}`}
+                          name={`sell-qty-${p._id}`}
+                          aria-label={`Sell quantity for ${p.name}`}
                           type="number"
                           min="1"
                           placeholder="Qty"
@@ -502,6 +538,9 @@ const [page, setPage] = useState("login"); // login | change
                       {/* PRICE */}
                       <td>
                         <input
+                          id={`sell-price-${p._id}`}
+                          name={`sell-price-${p._id}`}
+                          aria-label={`Price for ${p.name}`}
                           type="number"
                           placeholder="Price"
                           value={prices[p._id] || ""}
