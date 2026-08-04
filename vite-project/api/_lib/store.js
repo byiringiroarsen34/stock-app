@@ -1,7 +1,24 @@
-const fs = require('node:fs');
-const path = require('node:path');
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const storePath = path.join(process.cwd(), 'api', '.store.json');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const rootStorePath = path.join(__dirname, '..', '.store.json');
+const tmpStorePath = path.join(os.tmpdir(), 'stock-app-api', '.store.json');
+
+function isWritableDirectory(directory) {
+  try {
+    fs.accessSync(directory, fs.constants.W_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const storePath = process.env.STORE_PATH || (isWritableDirectory(path.dirname(rootStorePath)) ? rootStorePath : tmpStorePath);
 
 const defaultStore = {
   users: [
@@ -12,7 +29,16 @@ const defaultStore = {
   sales: []
 };
 
+function ensureStoreDirectory(directory) {
+  if (!fs.existsSync(directory)) {
+    fs.mkdirSync(directory, { recursive: true });
+  }
+}
+
 function ensureStore() {
+  const directory = path.dirname(storePath);
+  ensureStoreDirectory(directory);
+
   if (!fs.existsSync(storePath)) {
     fs.writeFileSync(storePath, JSON.stringify(defaultStore, null, 2));
   }
@@ -20,15 +46,17 @@ function ensureStore() {
   return JSON.parse(fs.readFileSync(storePath, 'utf8'));
 }
 
-function readStore() {
+export function readStore() {
   return ensureStore();
 }
 
-function writeStore(state) {
+export function writeStore(state) {
+  const directory = path.dirname(storePath);
+  ensureStoreDirectory(directory);
   fs.writeFileSync(storePath, JSON.stringify(state, null, 2));
 }
 
-function createToken(user) {
+export function createToken(user) {
   const payload = {
     username: user.username,
     role: user.role,
@@ -38,7 +66,7 @@ function createToken(user) {
   return Buffer.from(JSON.stringify(payload)).toString('base64');
 }
 
-function verifyToken(token) {
+export function verifyToken(token) {
   if (!token) return null;
 
   try {
@@ -49,7 +77,7 @@ function verifyToken(token) {
   }
 }
 
-function parseJsonBody(req) {
+export function parseJsonBody(req) {
   return new Promise((resolve, reject) => {
     if (!req.body) {
       resolve({});
@@ -69,16 +97,6 @@ function parseJsonBody(req) {
   });
 }
 
-function sendJson(res, statusCode, payload) {
+export function sendJson(res, statusCode, payload) {
   res.status(statusCode).json(payload);
 }
-
-module.exports = {
-  ensureStore,
-  readStore,
-  writeStore,
-  createToken,
-  verifyToken,
-  parseJsonBody,
-  sendJson
-};

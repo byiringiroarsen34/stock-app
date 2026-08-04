@@ -1,6 +1,6 @@
-const { readStore, verifyToken, sendJson } = require('./_lib/store');
+import { readStore, verifyToken, sendJson } from './_lib/store.js';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (res.setHeader) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,DELETE,OPTIONS');
@@ -24,4 +24,4 @@ module.exports = async function handler(req, res) {
   }
 
   return sendJson(res, 405, { message: 'Method not allowed' });
-};
+}
